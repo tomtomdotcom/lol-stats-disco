@@ -1,4 +1,5 @@
 import { getKDA, getRoleInformation, getWinPercentage, getFriendStatistics } from './getHelpers';
+import { messageBuilder } from './messageBuilder';
 import { champions, queues } from './dataMaps';
 const fetch = require('node-fetch');
 const leagueApiUrl = 'https://euw1.api.riotgames.com/lol';
@@ -18,7 +19,7 @@ const options = {
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
-export const getStats = async (message: any): Promise<any> => {
+export const getStats = async (message: any, command: string): Promise<any> => {
   let user = message.author.username;
 
   if (user === 'SteakZ') {
@@ -85,7 +86,10 @@ export const getStats = async (message: any): Promise<any> => {
   const gameHistory: any = [].concat.apply([], chunkedGameHistory);
   const revampedGameHistory = gameHistory.map((history, index) => {
     if (!history || !history.match || !history.match.participants) {
-      throw new Error('This game seemed to have no particpants..');
+      console.log({
+        err: history,
+        status: history.match.status,
+      });
     }
     const matchObject = history.match.participants.filter(participant => participant.championId === matchIds[index].championId)[0];
 
@@ -115,53 +119,37 @@ export const getStats = async (message: any): Promise<any> => {
   });
 
   const kda = getKDA(revampedGameHistory).toFixed(2);
-  const winPercentage = getWinPercentage(revampedGameHistory);
+  const winPercentage = getWinPercentage(revampedGameHistory, revampedGameHistory.length);
   const roleInformation = getRoleInformation(revampedGameHistory);
 
   let statsWithFriends = getFriendStatistics(revampedGameHistory, user);
-  statsWithFriends = statsWithFriends
-    .sort((a, b) => a.winPercentageWithName - b.winPercentageWithName)
-    .filter(stats => stats.winPercentageWithName > 0);
+  statsWithFriends = statsWithFriends.filter(stats => stats.winPercentageWithName !== 'N/A');
 
-  const bestFriend = statsWithFriends.pop();
-  const worstFriend = statsWithFriends[0];
+  const sortedFriendStats = statsWithFriends.sort((a, b) => a.winPercentageWithName - b.winPercentageWithName);
+  const worstFriend = sortedFriendStats[0];
+  const bestFriend = sortedFriendStats.pop();
 
+  let kdaStatswithFriends = getFriendStatistics(revampedGameHistory, user);
+  const kdaStats = kdaStatswithFriends.filter(stats => stats.kdaInGamesWithName !== 'N/A').map(x => {
+    return {
+      name: x.name,
+      kdaInGamesWithName: Number(x.kdaInGamesWithName)
+    }
+  });
+
+  const kdaSortedFriends = kdaStats.sort((a, b) => a.kdaInGamesWithName - b.kdaInGamesWithName);
+  const interFriend = kdaSortedFriends[0];
+  const bloodThirstyFriend = kdaSortedFriends.pop();
   /**
    * Build the message to send...
    */
-  message.channel.send(`
-  ${user} won ${winPercentage}% of their last 20 games with a KDA of ${kda}.
-  
-    - You played top ${roleInformation.top.gamesPlayed} times with a KDA of ${roleInformation.top.kda} and a win rate of ${
-    roleInformation.top.winPercentage
-  }.
-    - You were in the Jungle ${roleInformation.jungle.gamesPlayed} times with a KDA of ${roleInformation.jungle.kda} and a win rate of ${
-    roleInformation.jungle.winPercentage
-  }.
-    - You played mid ${roleInformation.mid.gamesPlayed} times with a KDA of ${roleInformation.mid.kda} and a win rate of ${
-    roleInformation.mid.winPercentage
-  }.
-    - You were bottom ${roleInformation.bottom.gamesPlayed} times with a KDA of ${roleInformation.bottom.kda} and a win rate of ${
-    roleInformation.bottom.winPercentage
-  }.
-    - You played support ${roleInformation.support.gamesPlayed}  times with a KDA of ${roleInformation.support.kda} and a win rate of ${
-    roleInformation.support.winPercentage
-  }.
-    - We could not determine your role for ${roleInformation.unknown.gamesPlayed} games but you had  a KDA of ${
-    roleInformation.unknown.kda
-  } and a win rate of ${roleInformation.unknown.winPercentage}. 
-  
-  
-  You win ${bestFriend!.winPercentageWithName}% of your games with ${bestFriend!.name} rocking a KDA of ${
-    bestFriend!.kdaInGamesWithName
-  } :sunglasses: but only have a win rate of ${worstFriend!.winPercentageWithName}% whilst playing with ${
-    worstFriend!.name
-  } with a KDA of ${worstFriend!.kdaInGamesWithName} :sob:
-  `);
+  const messageData = { user, kda, winPercentage, revampedGameHistory, roleInformation, bestFriend, worstFriend, bloodThirstyFriend, interFriend };
+
+  message.channel.send(messageBuilder(command, messageData));
 };
 
 const getGameData = async id => {
-  await delay(1500);
+  await delay(1250);
   const data = await fetch(`${leagueApiUrl}/${matchRequestUrl}/${id}`, options);
   return await data.json();
 };

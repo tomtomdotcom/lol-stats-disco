@@ -1,6 +1,6 @@
 // Get win % from last 10 games.
 export const getWinPercentage = (games: any, gamesPlayed?: any): any => {
-  const played = gamesPlayed || 20;
+  const played = gamesPlayed;
   const wins = games.filter(games => games.usersTeam[0].win === 'Win');
   const numberOfWins = wins.length;
 
@@ -57,7 +57,7 @@ export const getRoleInformation = (games: any): any => {
 };
 
 export const getFriendStatistics = (games, user) => {
-  let listOfUs = ['steakzz', 'RavingPonies', 'Toomyloomy', 'skryra', 'mellicon'];
+  let listOfUs = ['steakzz', 'RavingPonies', 'Toomyloomy', 'skryra', 'mellicon', 'Philvester', 'Peplexus'];
   listOfUs = listOfUs.filter(name => name !== user);
   return listOfUs.map(name => {
     const gamesWithName = games.filter(game => game.gameParticipantsIdentities.find(id => id.player.summonerName === name));
