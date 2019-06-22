@@ -1,5 +1,5 @@
 import * as Discord from 'discord.js';
-import { processCommand } from './helpers';
+import { processCommand } from './processCommand';
 
 const client = new Discord.Client();
 const bot_secret_token = process.env.DISCO_BOT_TOKEN;
