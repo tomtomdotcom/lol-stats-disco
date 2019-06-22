@@ -55,3 +55,27 @@ export const getRoleInformation = (games: any): any => {
     unknown: unknownStats,
   };
 };
+
+export const getFriendStatistics = (games, user) => {
+  let listOfUs = ['steakzz', 'RavingPonies', 'Toomyloomy', 'skryra', 'mellicon'];
+  listOfUs = listOfUs.filter(name => name !== user);
+  return listOfUs.map(name => {
+    const gamesWithName = games.filter(game => game.gameParticipantsIdentities.find(id => id.player.summonerName === name));
+    const winPercentageWithName = getWinPercentage(gamesWithName, gamesWithName.length);
+    const kdaInGamesWithName = getKDA(gamesWithName).toFixed(2) || 0;
+
+    if (gamesWithName.length < 1) {
+      return {
+        winPercentageWithName: 'N/A',
+        kdaInGamesWithName: 'N/A',
+        name,
+      };
+    } else {
+      return {
+        winPercentageWithName,
+        kdaInGamesWithName,
+        name,
+      };
+    }
+  });
+};

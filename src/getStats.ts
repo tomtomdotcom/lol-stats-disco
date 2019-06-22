@@ -1,4 +1,4 @@
-import { getKDA, getRoleInformation, getWinPercentage } from './getHelpers';
+import { getKDA, getRoleInformation, getWinPercentage, getFriendStatistics } from './getHelpers';
 import { champions, queues } from './dataMaps';
 const fetch = require('node-fetch');
 const leagueApiUrl = 'https://euw1.api.riotgames.com/lol';
@@ -41,7 +41,7 @@ export const getStats = async (message: any): Promise<any> => {
   console.log('Requesting Match History for user:', user);
   const result = await fetch(`${leagueApiUrl}/${requestUrl}/${user}`, options);
   const summonerInfo = await result.json();
-  message.channel.send(`I'm new to this so please bear with me, any issues @toomyloomy and he'll take a look.`);
+  // message.channel.send(`I'm new to this so please bear with me, any issues @toomyloomy and he'll take a look.`);
 
   const usersLeagueId = summonerInfo.accountId;
 
@@ -117,6 +117,18 @@ export const getStats = async (message: any): Promise<any> => {
   const kda = getKDA(revampedGameHistory).toFixed(2);
   const winPercentage = getWinPercentage(revampedGameHistory);
   const roleInformation = getRoleInformation(revampedGameHistory);
+
+  let statsWithFriends = getFriendStatistics(revampedGameHistory, user);
+  statsWithFriends = statsWithFriends
+    .sort((a, b) => a.winPercentageWithName - b.winPercentageWithName)
+    .filter(stats => stats.winPercentageWithName > 0);
+
+  const bestFriend = statsWithFriends.pop();
+  const worstFriend = statsWithFriends[0];
+
+  /**
+   * Build the message to send...
+   */
   message.channel.send(`
   ${user} won ${winPercentage}% of their last 20 games with a KDA of ${kda}.
   
@@ -137,7 +149,14 @@ export const getStats = async (message: any): Promise<any> => {
   }.
     - We could not determine your role for ${roleInformation.unknown.gamesPlayed} games but you had  a KDA of ${
     roleInformation.unknown.kda
-  } and a win rate of ${roleInformation.unknown.winPercentage}.
+  } and a win rate of ${roleInformation.unknown.winPercentage}. 
+  
+  
+  You win ${bestFriend!.winPercentageWithName}% of your games with ${bestFriend!.name} rocking a KDA of ${
+    bestFriend!.kdaInGamesWithName
+  } :sunglasses: but only have a win rate of ${worstFriend!.winPercentageWithName}% whilst playing with ${
+    worstFriend!.name
+  } with a KDA of ${worstFriend!.kdaInGamesWithName} :sob:
   `);
 };
 
