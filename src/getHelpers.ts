@@ -69,12 +69,14 @@ export const getFriendStatistics = (games, user) => {
         winPercentageWithName: 'N/A',
         kdaInGamesWithName: 'N/A',
         name,
+        numberOfGames: 'N/A'
       };
     } else {
       return {
         winPercentageWithName,
         kdaInGamesWithName,
         name,
+        numberOfGames: gamesWithName.length
       };
     }
   });

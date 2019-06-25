@@ -68,12 +68,12 @@ const statsMessage = data => {
     }${"```"}
 
   **Best Friend** :heart:
-  ${user} wins ${bestFriend!.winPercentageWithName}% of his games with ${bestFriend!.name}.
-  with a KDA of ${bestFriend!.kdaInGamesWithName} in these games.
+  ${user} wins ${bestFriend!.winPercentageWithName}% of his games (${bestFriend.numberOfGames}) with ${bestFriend!.name}.
+  with a KDA of ${bestFriend!.kdaInGamesWithName}.
 
   **Worst Friend** :sob:
-  ${user} only wins ${worstFriend!.winPercentageWithName}% of his games with ${worstFriend!.name}.
-  with only a KDA of ${worstFriend!.kdaInGamesWithName} in these games.
+  ${user} only wins ${worstFriend!.winPercentageWithName}% of his games (${worstFriend.numberOfGames}) with ${worstFriend!.name}.
+  with only a KDA of ${worstFriend!.kdaInGamesWithName}.
 
   **Bloodthirsty** :crossed_swords: 
   ${user} has the highest KDA when playing with ${bloodThirstyFriend!.name} with a KDA of ${bloodThirstyFriend!.kdaInGamesWithName.toFixed(2)}
